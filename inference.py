@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Inference script for StructuralDesignEnv — OpenEnv Hackathon Round 1 submission.
+Inference script for DesignRL — OpenEnv Hackathon Round 1 submission.
 
 An LLM agent designs a steel building frame step-by-step, receiving physics
 analysis feedback (utilization ratios, deflections, drift) at each step.
@@ -47,7 +47,7 @@ SPACE_URL: str = os.getenv("SERVER_URL") or os.getenv("SPACE_URL", "http://local
 TEMPERATURE: float = 0.0
 MAX_TOKENS: int = 4096  # Qwen3.5 needs extra tokens for thinking before JSON
 
-BENCHMARK = "structural_design_env"
+BENCHMARK = "designrl"
 
 SYSTEM_PROMPT = textwrap.dedent("""
     You are a structural engineer designing a building frame step-by-step.

@@ -1,4 +1,4 @@
-# StructuralDesignEnv — Docker Image
+# DesignRL — Docker Image
 # Serves on port 7860 (HF Spaces standard)
 
 FROM python:3.11-slim
@@ -23,5 +23,5 @@ ENV PYTHONPATH=/app
 HEALTHCHECK --interval=30s --timeout=10s --retries=3 \
   CMD python -c "import urllib.request; urllib.request.urlopen('http://localhost:7860/health')"
 
-# Run the server (server.py at repo root exports `app`)
+# Run the FastAPI application.
 CMD ["uvicorn", "server.app:app", "--host", "0.0.0.0", "--port", "7860", "--workers", "1"]

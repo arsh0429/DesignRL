@@ -1,5 +1,5 @@
 """
-StructuralDesignEnv: Main environment class (OpenEnv specification).
+DesignRL: Main environment class (OpenEnv specification).
 
 The agent places columns, beams, and shear walls on a structural grid,
 then receives physics analysis results from the direct stiffness solver
@@ -86,6 +86,7 @@ class StructuralDesignEnv:
         self._last_action_result = "RESET"
         self._last_action_error = None
         self._consecutive_invalid = 0
+        self._last_solver_result = None
 
         obs = self._build_observation()
         self._prev_obs = obs
@@ -271,6 +272,7 @@ class StructuralDesignEnv:
 
         # ---- Physics solve ----
         solver_result = None
+        self._last_solver_result = None
         member_checks: Dict[str, Any] = {}
         lateral_drift_ratio = 0.0
 
@@ -367,6 +369,7 @@ class StructuralDesignEnv:
         is_structurally_valid = (
             n_code_violations == 0
             and len(critical_members) > 0
+            and lateral_drift_ratio <= 1.0
             and (solver_result.converged if solver_result else False)
         )
 

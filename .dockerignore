@@ -3,7 +3,10 @@ __pycache__/
 *.pyo
 *.pyd
 .Python
+.git/
 .env
+.env.*
+!.env.example
 .venv
 venv/
 env/
@@ -11,8 +14,14 @@ dist/
 build/
 *.egg-info/
 .pytest_cache/
+.uv-cache/
 .mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
 outputs/
+artifacts/
+run_logs/
 *.log
 .DS_Store
 Thumbs.db

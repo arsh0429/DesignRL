@@ -1,5 +1,5 @@
 """
-Three-stage physics reward for StructuralDesignEnv.
+Three-stage physics reward for DesignRL.
 
 Stage 1: Member-level physics improvement (bending, buckling, violations)
 Stage 2: Global structure behaviour (deflection, lateral drift)

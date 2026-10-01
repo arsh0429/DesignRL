@@ -143,7 +143,7 @@ def check_member(
         lambda_1 = math.pi * math.sqrt(E / f_y)
 
         # Radius of gyration (strong axis governs for HEB — I_y > I_z)
-        r = math.sqrt(I_y / A)
+        r = math.sqrt(min(I_y, section_props.get("I_z", I_y)) / A)
 
         # Non-dimensional slenderness (EN 1993-1-1 §6.3.1.3)
         lambda_bar = (L_eff / r) / lambda_1

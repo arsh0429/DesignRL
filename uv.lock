@@ -2688,7 +2688,7 @@ wheels = [
 ]
 
 [[package]]
-name = "structural-design-env"
+name = "designrl"
 version = "1.0.0"
 source = { editable = "." }
 dependencies = [

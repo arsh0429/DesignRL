@@ -3,12 +3,12 @@ requires = ["setuptools>=68", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "structural-design-env"
+name = "designrl"
 version = "1.0.0"
-description = "StructuralDesignEnv — Steel Frame OpenEnv Environment with Eurocode 3 physics"
+description = "DesignRL — Steel Frame OpenEnv Environment with Eurocode 3 physics"
 readme = "README.md"
 requires-python = ">=3.10"
-license = {text = "MIT"}
+license = "MIT"
 authors = [
   {name = "Ayush Singh", email = "ayushsingh73920@gmail.com"}
 ]
@@ -47,12 +47,15 @@ openenv = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/ayushsi42/structural_design_env"
-Repository = "https://github.com/ayushsi42/structural_design_env"
+Homepage = "https://github.com/arsh0429/DesignRL"
+Repository = "https://github.com/arsh0429/DesignRL"
 
 [tool.setuptools.packages.find]
 where = ["."]
 include = ["structural_design_env*", "server*"]
+
+[tool.setuptools.package-data]
+server = ["interactive_demo.html"]
 
 [tool.pytest.ini_options]
 asyncio_mode = "auto"

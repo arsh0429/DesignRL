@@ -1,5 +1,5 @@
 """
-FastAPI server for StructuralDesignEnv (OpenEnv HTTP interface).
+FastAPI server for DesignRL (OpenEnv HTTP interface).
 
 Endpoints (OpenEnv required):
   GET  /health       → {"status": "healthy"}
@@ -65,7 +65,7 @@ session_manager = SessionManager()
 # ---------------------------------------------------------------------------
 
 app = FastAPI(
-    title="StructuralDesignEnv",
+    title="DesignRL",
     description="OpenEnv API for steel frame structural engineering RL environment.",
     version="1.0.0",
 )
@@ -88,7 +88,7 @@ class StepRequest(BaseModel):
             return self.message
         if self.action:
             return json.dumps(self.action)
-        return '{"action_type": "done"}'
+        raise ValueError("Provide message or action")
 
 
 class ResetRequest(BaseModel):
@@ -120,14 +120,14 @@ class StepResponse(BaseModel):
 @app.get("/health")
 def health():
     """OpenEnv required: health check. Must return status=healthy."""
-    return {"status": "healthy", "env": "StructuralDesignEnv", "version": "1.0.0"}
+    return {"status": "healthy", "env": "DesignRL", "version": "1.0.0"}
 
 
 @app.get("/metadata")
 def metadata():
     """OpenEnv required: environment metadata."""
     return {
-        "name": "StructuralDesignEnv",
+        "name": "DesignRL",
         "description": (
             "RL environment where LLM agents design structurally sound steel building frames. "
             "Agents place columns, beams, and shear walls, then receive physics analysis results "
@@ -227,8 +227,10 @@ async def mcp_endpoint(request: Request):
 
         if tool_name == "step":
             session_id = tool_input.get("session_id", None)
+            if not session_id or session_manager.get(session_id) is None:
+                return {"jsonrpc": "2.0", "id": req_id, "error": {"code": -32602, "message": "Reset first and provide a valid session_id"}}
             message = tool_input.get("message", "{}")
-            sid, env = session_manager.get_or_create(session_id)
+            env = session_manager.get(session_id)
             obs, reward, done, info = env.step(message)
             return {"jsonrpc": "2.0", "id": req_id, "result": {"observation": obs, "reward": reward, "done": done, "info": info}}
 
@@ -291,7 +293,14 @@ def reset_env(body: Dict[str, Any] | None = Body(default=None)):
 
 @app.post("/step", response_model=StepResponse)
 def step_env(req: StepRequest):
-    sid, env = session_manager.get_or_create(req.session_id)
+    if req.message is None and req.action is None:
+        raise HTTPException(status_code=400, detail="Provide message or action")
+    if not req.session_id:
+        raise HTTPException(status_code=400, detail="Reset the environment first and provide session_id")
+    sid = req.session_id
+    env = session_manager.get(sid)
+    if env is None:
+        raise HTTPException(status_code=404, detail=f"Session '{sid}' not found")
     message = req.get_message()   # handles both "message": "..." and "action": {...}
     obs, reward, done, info = env.step(message)
     graded_score = info.get("graded_score") if done else None
@@ -321,12 +330,12 @@ def grade_task(req: GradeRequest):
     if req.task_id not in TASK_REGISTRY:
         raise HTTPException(status_code=400, detail=f"Unknown task_id '{req.task_id}'")
 
-    cfg, grader_fn = TASK_REGISTRY[req.task_id]
-
     if req.session_id:
         env = session_manager.get(req.session_id)
         if env is None:
             raise HTTPException(status_code=404, detail=f"Session '{req.session_id}' not found")
+        if env.task_config is None or env.task_config.task_id != req.task_id:
+            raise HTTPException(status_code=400, detail="task_id does not match the session task")
         obs = env._current_obs
         if obs is None:
             # Session exists but hasn't stepped yet — build observation
@@ -339,7 +348,7 @@ def grade_task(req: GradeRequest):
         obs = env._current_obs
 
     try:
-        score = float(grader_fn(obs))
+        score = float(env._grade())
     except Exception as exc:
         raise HTTPException(status_code=500, detail=f"Grader error: {exc}")
 
@@ -364,7 +373,7 @@ def get_state(session_id: Optional[str] = None):
 @app.get("/action_schema")
 def action_schema():
     return {
-        "description": "Actions for StructuralDesignEnv. Send as JSON string in the 'message' field of /step.",
+        "description": "Actions for DesignRL. Send as JSON string in the 'message' field of /step.",
         "actions": [
             {
                 "action_type": "place_column",

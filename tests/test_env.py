@@ -1,5 +1,5 @@
 """
-Integration tests for StructuralDesignEnv.
+Integration tests for DesignRL.
 
 Covers:
 - reset returns valid observation
@@ -160,6 +160,15 @@ class TestPlaceBeam:
             "floor": 0, "section": "IPE300", "orientation": "x",
         })
         self.env.step(action)
+        obs, _, _, _ = self.env.step(action)
+        assert obs["last_action_result"] == "INVALID"
+
+    def test_beam_orientation_must_match_endpoints(self):
+        action = json.dumps({
+            "action_type": "place_beam", "from_node_x": 0, "from_node_y": 0,
+            "to_node_x": 5, "to_node_y": 0, "floor": 0,
+            "section": "IPE300", "orientation": "y",
+        })
         obs, _, _, _ = self.env.step(action)
         assert obs["last_action_result"] == "INVALID"
 

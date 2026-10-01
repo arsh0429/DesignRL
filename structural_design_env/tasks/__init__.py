@@ -1,4 +1,4 @@
-"""Task definitions for StructuralDesignEnv."""
+"""Task definitions for DesignRL."""
 
 from .task1_warehouse import TASK1_CONFIG, grade_task1
 from .task2_office import TASK2_CONFIG, grade_task2

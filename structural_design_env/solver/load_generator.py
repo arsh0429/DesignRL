@@ -29,17 +29,12 @@ def _parse_node_coords(node_id: str) -> Tuple[int, int, int]:
     return x, y, floor
 
 
-def _compute_tributary_areas(graph) -> Dict[str, float]:
+def _compute_tributary_areas(graph, site_width_m: float, site_depth_m: float) -> Dict[str, float]:
     """
     Compute tributary floor area (m²) for each node at the TOP of each column.
 
-    For each column at plan position (cx, cy), search ALL other columns
-    regardless of grid alignment:
-      dx_left  = (cx - max(all_x < cx)) / 2  or  cx/2 if none
-      dx_right = (min(all_x > cx) - cx) / 2  or  (19-cx)/2 if none
-      dy_below = (cy - max(all_y < cy)) / 2  or  cy/2 if none
-      dy_above = (min(all_y > cy) - cy) / 2  or  (19-cy)/2 if none
-      area = (dx_left + dx_right) * (dy_below + dy_above)
+    Each 1 m square site cell is assigned to its nearest column at that
+    level. Ties are split equally. This is a coarse plan-area approximation.
     """
     # Group column TOP nodes by floor (floor+1 level)
     floor_columns: Dict[int, list] = {}  # floor_level -> [(x, y, node_id)]
@@ -58,24 +53,16 @@ def _compute_tributary_areas(graph) -> Dict[str, float]:
     trib: Dict[str, float] = {}
 
     for floor_level, cols in floor_columns.items():
-        # All unique x and y positions at this floor (from ALL columns)
-        all_xs = sorted(set(c[0] for c in cols))
-        all_ys = sorted(set(c[1] for c in cols))
-
-        for cx, cy, nid in cols:
-            # X direction: search ALL columns regardless of y
-            left_xs  = [x for x in all_xs if x < cx]
-            right_xs = [x for x in all_xs if x > cx]
-            dx_left  = (cx - max(left_xs))  / 2.0 if left_xs  else cx / 2.0
-            dx_right = (min(right_xs) - cx) / 2.0 if right_xs else (19 - cx) / 2.0
-
-            # Y direction: search ALL columns regardless of x
-            below_ys = [y for y in all_ys if y < cy]
-            above_ys = [y for y in all_ys if y > cy]
-            dy_below = (cy - max(below_ys)) / 2.0 if below_ys else cy / 2.0
-            dy_above = (min(above_ys) - cy)  / 2.0 if above_ys else (19 - cy) / 2.0
-
-            trib[nid] = (dx_left + dx_right) * (dy_below + dy_above)
+        for _, _, nid in cols:
+            trib[nid] = 0.0
+        for x in range(int(site_width_m)):
+            for y in range(int(site_depth_m)):
+                distances = [((x + 0.5 - cx) ** 2 + (y + 0.5 - cy) ** 2, nid)
+                             for cx, cy, nid in cols]
+                nearest = min(distance for distance, _ in distances)
+                winners = [nid for distance, nid in distances if distance == nearest]
+                for nid in winners:
+                    trib[nid] += 1.0 / len(winners)
 
     return trib
 
@@ -109,19 +96,16 @@ def generate_loads(graph, task_config) -> Dict[str, Dict[str, float]]:
     # ------------------------------------------------------------------
     # 1. Gravity loads (Fz, downward = negative)
     # ------------------------------------------------------------------
-    trib_areas = _compute_tributary_areas(graph)
+    trib_areas = _compute_tributary_areas(graph, task_config.site_width_m, task_config.site_depth_m)
     total_load_kPa = dead_kPa + live_kPa  # kN/m²
 
     for nid, area_m2 in trib_areas.items():
         nd = graph.nodes.get(nid)
         if nd is None:
             continue
-        # Count how many floors are above this node
-        floors_above = n_floors - nd.floor
-        if floors_above <= 0:
-            floors_above = 1
+        # Apply this floor's load once; the solver transfers it downward.
         # Force in Newtons (kN/m² * m² * 1000 N/kN), downward = negative Fz
-        Fz = -(total_load_kPa * area_m2 * floors_above) * 1000.0
+        Fz = -(total_load_kPa * area_m2) * 1000.0
         loads.setdefault(nid, {"Fx": 0.0, "Fy": 0.0, "Fz": 0.0})
         loads[nid]["Fz"] += Fz
 

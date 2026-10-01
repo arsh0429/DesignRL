@@ -1,5 +1,7 @@
 # Environment
 .env
+.env.*
+!.env.example
 .venv
 venv/
 env/
@@ -14,6 +16,12 @@ __pycache__/
 dist/
 build/
 .eggs/
+.pytest_cache/
+.uv-cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
 hf_cache
 
 # Dev/local files
@@ -22,6 +30,8 @@ ps_hackathon.md
 env_docs.js
 run_debug.jsonl
 artifacts/
+outputs/
+*.log
 
 # IDE
 .vscode/

@@ -1,1 +1,1 @@
-# Tests for StructuralDesignEnv
+# Tests for DesignRL

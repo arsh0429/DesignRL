@@ -1,5 +1,5 @@
 """
-Action geometry validator for StructuralDesignEnv.
+Action geometry validator for DesignRL.
 
 Validates agent actions before they are applied to the graph/grid.
 """
@@ -101,6 +101,9 @@ def validate_action(
             return False, f"Beam must be axis-aligned: from ({fx},{fy}) to ({tx},{ty}) is diagonal"
         if fx == tx and fy == ty:
             return False, "Beam start and end are the same node"
+        expected_orientation = "x" if fy == ty else "y"
+        if orientation != expected_orientation:
+            return False, f"Beam orientation must be '{expected_orientation}' for these endpoints"
 
         if not (0 <= floor < task_config.n_floors):
             return False, f"floor={floor} out of range [0, {task_config.n_floors - 1}]"
@@ -202,6 +205,9 @@ def validate_action(
             return False, f"Wall must be axis-aligned: from ({fx},{fy}) to ({tx},{ty}) is diagonal"
         if fx == tx and fy == ty:
             return False, "Wall start and end are the same node"
+        expected_orientation = "x" if fy == ty else "y"
+        if action.orientation is not None and action.orientation != expected_orientation:
+            return False, f"Wall orientation must be '{expected_orientation}' for these endpoints"
 
         if not (0 <= floor < task_config.n_floors):
             return False, f"floor={floor} out of range"

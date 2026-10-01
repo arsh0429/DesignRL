@@ -1,7 +1,7 @@
 spec_version: 1
-name: structural_design_env
+name: designrl
 description: >
-  StructuralDesignEnv — an OpenEnv environment where LLM agents design
+  DesignRL — an OpenEnv environment where LLM agents design
   structurally sound steel building frames. Agents place columns, beams,
   and shear walls, then receive physics analysis results (utilization ratios,
   deflections, drift) from the direct stiffness method. Eurocode 3 compliance

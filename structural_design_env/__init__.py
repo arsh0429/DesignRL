@@ -1,5 +1,5 @@
 """
-StructuralDesignEnv — OpenEnv environment for steel building frame design.
+DesignRL — OpenEnv environment for steel building frame design.
 
 Agents place columns, beams, and shear walls on a structural grid and receive
 physics analysis feedback via the direct stiffness method and Eurocode 3 checks.

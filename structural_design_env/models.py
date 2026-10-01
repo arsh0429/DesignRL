@@ -1,5 +1,5 @@
 """
-Pydantic models for StructuralDesignEnv:
+Pydantic models for DesignRL:
 - StructuralAction
 - CriticalMember
 - StructuralObservation
